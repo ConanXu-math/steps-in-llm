@@ -338,3 +338,34 @@ $$
   - 在医学、法律、金融等专业语料上继续预训练或微调  
 - **任务微调**  
   - 在下游任务上微调已有预训练模型的嵌入层  
+
+###### 
+
+## 可训练查表（Lookup）嵌入
+
+- **定义结构**
+   在模型初始化时随机创建 embedding 矩阵：
+
+  ```python
+  C = torch.randn((vocab_size, n_embd), generator=g)
+  ```
+
+  - `vocab_size`：词表大小（或字符集大小）
+  - `n_embd`：嵌入向量维度
+
+- **前向查表**
+
+  ```python
+  emb = C[Xb]
+  ```
+
+  - `Xb` 是形如 `(batch_size, block_size)` 的整数索引张量
+  - `C[Xb]` 输出形状 `(batch_size, block_size, n_embd)`，将每个索引映射为对应行向量
+
+- **扁平化后接入网络**
+
+  ```py
+  x = emb.view(emb.shape[0], -1)
+  ```
+
+  - 形状变为 `(batch_size, block_size * n_embd)`，将嵌入按序拼接，送入后续全连接层
